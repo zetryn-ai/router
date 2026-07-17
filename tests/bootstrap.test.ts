@@ -43,4 +43,18 @@ describe('runBootstrap', () => {
     runBootstrap()
     expect(listProviders()).toHaveLength(5)
   })
+
+  it('prunes logs older than 30 days on every run', async () => {
+    const { runBootstrap } = await import('../src/lib/bootstrap')
+    const { logRequest, listLogs } = await import('../src/lib/logs.repo')
+    const { getDb } = await import('../src/lib/db')
+
+    runBootstrap()
+    logRequest({ credentialId: null, providerSlug: 'helius', statusCode: 200, durationMs: 10 })
+    getDb().prepare("UPDATE request_logs SET created_at = datetime('now', '-31 days')").run()
+
+    runBootstrap()
+
+    expect(listLogs({})).toHaveLength(0)
+  })
 })
