@@ -90,6 +90,23 @@ describe('providers.repo', () => {
     expect(openai.models).toEqual(expect.arrayContaining(['gpt-4o', 'gpt-4o-mini']))
   })
 
+  it('backfills category/isLlm/models onto a pre-existing default provider (upgrade path)', async () => {
+    const { createProvider, seedDefaultProviders, getProviderBySlug } = await import('../src/lib/providers.repo')
+    // Simulate a provider seeded before migration 003 metadata existed:
+    // created with defaults (category 'other', isLlm false, no models).
+    createProvider({
+      slug: 'openai', name: 'OpenAI', defaultInjectLocation: 'header',
+      defaultInjectKeyName: 'Authorization', defaultBaseUrl: 'https://api.openai.com',
+    })
+    expect(getProviderBySlug('openai')!.isLlm).toBe(false)
+    seedDefaultProviders()
+    const upgraded = getProviderBySlug('openai')!
+    expect(upgraded.isLlm).toBe(true)
+    expect(upgraded.category).toBe('llm')
+    expect(upgraded.models).toEqual(expect.arrayContaining(['gpt-4o']))
+    expect(upgraded.defaultInjectValueTemplate).toBe('Bearer {key}')
+  })
+
   it('setStickyLimit updates the value', async () => {
     const { createProvider, getProviderBySlug, setStickyLimit } = await import('../src/lib/providers.repo')
     const p = createProvider({

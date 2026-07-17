@@ -181,9 +181,37 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
   },
 ]
 
+// Backfill the category / is_llm / models / inject-template metadata onto a
+// default provider that already exists from an earlier schema. This runs on
+// every boot so a DB seeded before migration 003 gets its LLM/category info
+// without wiping user-managed fields (credentials, chosen rotation strategy,
+// sticky limit are left untouched).
+function backfillDefaultMetadata(provider: NewProviderInput): void {
+  getDb()
+    .prepare(
+      `UPDATE providers
+       SET category = @category,
+           is_llm = @isLlm,
+           models_json = @modelsJson,
+           default_inject_value_template = @defaultInjectValueTemplate
+       WHERE slug = @slug`
+    )
+    .run({
+      slug: provider.slug,
+      category: provider.category ?? 'other',
+      isLlm: provider.isLlm ? 1 : 0,
+      modelsJson: provider.models ? JSON.stringify(provider.models) : null,
+      defaultInjectValueTemplate: provider.defaultInjectValueTemplate ?? null,
+    })
+}
+
 export function seedDefaultProviders(): void {
   for (const provider of DEFAULT_PROVIDERS) {
     const existing = getProviderBySlug(provider.slug)
-    if (!existing) createProvider(provider)
+    if (!existing) {
+      createProvider(provider)
+    } else {
+      backfillDefaultMetadata(provider)
+    }
   }
 }
