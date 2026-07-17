@@ -7,7 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ThemeToggle } from '@/components/theme-toggle'
 
 const NAV_ITEMS = [
+  { href: '/endpoint', label: 'API Endpoint', icon: '⧉' },
   { href: '/', label: 'Providers', icon: '◈' },
+  { href: '/combos', label: 'Combos AI', icon: '❋' },
   { href: '/logs', label: 'Logs', icon: '≡' },
   { href: '/settings', label: 'Settings', icon: '⚙' },
 ]
