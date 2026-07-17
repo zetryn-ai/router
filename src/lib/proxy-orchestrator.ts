@@ -44,7 +44,7 @@ export async function handleProxyRequest(input: ProxyRequestInput): Promise<Prox
   const maxAttempts = totalCredentials
 
   while (attempts < maxAttempts) {
-    const credential = pickNextCredential(provider.id)
+    const credential = pickNextCredential(provider)
     if (!credential) {
       return { status: 503, body: { error: 'no available credential', provider: provider.slug } }
     }

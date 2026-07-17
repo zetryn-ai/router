@@ -4,10 +4,17 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { TextInput, FieldLabel, Button } from '@/components/ui'
 
-export function CredentialForm({ providerId }: { providerId: number }) {
+export function CredentialForm({
+  providerId,
+  showPriority,
+}: {
+  providerId: number
+  showPriority: boolean
+}) {
   const [label, setLabel] = useState('')
   const [secretValue, setSecretValue] = useState('')
   const [baseUrlOverride, setBaseUrlOverride] = useState('')
+  const [priority, setPriority] = useState('100')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -23,6 +30,7 @@ export function CredentialForm({ providerId }: { providerId: number }) {
           label,
           secretValue,
           baseUrlOverride: baseUrlOverride || null,
+          priority: showPriority ? Number(priority) : undefined,
         }),
       })
       if (!res.ok) {
@@ -34,6 +42,7 @@ export function CredentialForm({ providerId }: { providerId: number }) {
       setLabel('')
       setSecretValue('')
       setBaseUrlOverride('')
+      setPriority('100')
       router.refresh()
     })
   }
@@ -62,7 +71,7 @@ export function CredentialForm({ providerId }: { providerId: number }) {
             required
           />
         </div>
-        <div className="space-y-1.5 sm:col-span-2">
+        <div className={`space-y-1.5 ${showPriority ? '' : 'sm:col-span-2'}`}>
           <FieldLabel>Base URL override</FieldLabel>
           <TextInput
             value={baseUrlOverride}
@@ -70,6 +79,18 @@ export function CredentialForm({ providerId }: { providerId: number }) {
             placeholder="Optional — required for QuickNode / Jupiter-paid"
           />
         </div>
+        {showPriority && (
+          <div className="space-y-1.5">
+            <FieldLabel>Priority (lower = tried first)</FieldLabel>
+            <TextInput
+              type="number"
+              min={1}
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              placeholder="100"
+            />
+          </div>
+        )}
       </div>
 
       {error && <p className="text-sm text-danger">{error}</p>}

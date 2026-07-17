@@ -26,12 +26,35 @@ describe('providers.repo', () => {
     expect(providers[0]).toMatchObject({ slug: 'custom-rpc', name: 'Custom RPC' })
   })
 
-  it('seeds exactly the 5 default providers, idempotently', async () => {
+  it('seeds exactly the default providers, idempotently', async () => {
     const { seedDefaultProviders, listProviders } = await import('../src/lib/providers.repo')
     seedDefaultProviders()
     seedDefaultProviders() // calling twice must not duplicate
     const slugs = listProviders().map((p) => p.slug).sort()
-    expect(slugs).toEqual(['birdeye', 'dexscreener', 'helius', 'jupiter', 'quicknode'])
+    expect(slugs).toEqual([
+      'anthropic',
+      'birdeye',
+      'dexscreener',
+      'gemini',
+      'helius',
+      'jupiter',
+      'openai',
+      'quicknode',
+    ])
+  })
+
+  it('seeds LLM providers with priority strategy and value templates', async () => {
+    const { seedDefaultProviders, getProviderBySlug } = await import('../src/lib/providers.repo')
+    seedDefaultProviders()
+    const openai = getProviderBySlug('openai')
+    expect(openai).toMatchObject({
+      defaultInjectLocation: 'header',
+      defaultInjectKeyName: 'Authorization',
+      defaultInjectValueTemplate: 'Bearer {key}',
+      rotationStrategy: 'priority',
+    })
+    // Solana/data providers keep the default round_robin strategy
+    expect(getProviderBySlug('helius')?.rotationStrategy).toBe('round_robin')
   })
 
   it('seeds helius with query-param injection', async () => {

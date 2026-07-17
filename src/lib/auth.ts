@@ -1,7 +1,7 @@
 import crypto from 'node:crypto'
 import { SignJWT, jwtVerify } from 'jose'
 
-export const DEFAULT_PASSWORD = 'changeme'
+export const DEFAULT_PASSWORD = 'zetryn'
 
 export function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16)

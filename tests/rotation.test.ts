@@ -23,7 +23,7 @@ describe('pickNextCredential', () => {
       defaultInjectKeyName: 'X-API-KEY',
       defaultBaseUrl: 'https://api.example.com',
     })
-    expect(pickNextCredential(provider.id)).toBeNull()
+    expect(pickNextCredential(provider)).toBeNull()
   })
 
   it('cycles through active credentials round-robin', async () => {
@@ -41,11 +41,10 @@ describe('pickNextCredential', () => {
     const b = createCredential({ providerId: provider.id, label: 'b', secretValue: 'sb' })
 
     const picks = [
-      pickNextCredential(provider.id)?.id,
-      pickNextCredential(provider.id)?.id,
-      pickNextCredential(provider.id)?.id,
+      pickNextCredential(provider)?.id,
+      pickNextCredential(provider)?.id,
+      pickNextCredential(provider)?.id,
     ]
-    // must alternate between the two, in some consistent cyclical order
     expect(picks[0]).not.toBe(picks[1])
     expect(picks[0]).toBe(picks[2])
     expect([a.id, b.id]).toEqual(expect.arrayContaining([picks[0], picks[1]]))
@@ -72,7 +71,87 @@ describe('pickNextCredential', () => {
     markError(errored.id, 'bad key')
     markCooldown(cooling.id, 300)
 
-    const pick = pickNextCredential(provider.id)
+    const pick = pickNextCredential(provider)
     expect(pick?.id).toBe(healthy.id)
+  })
+
+  it('LRU strategy always picks the credential with the oldest last_used_at (null first)', async () => {
+    const { createProvider } = await import('../src/lib/providers.repo')
+    const { createCredential, touchLastUsed } = await import('../src/lib/credentials.repo')
+    const { pickNextCredential } = await import('../src/lib/rotation')
+    const provider = createProvider({
+      slug: 'lru-p',
+      name: 'LRU',
+      defaultInjectLocation: 'header',
+      defaultInjectKeyName: 'X-API-KEY',
+      defaultBaseUrl: 'https://api.example.com',
+      rotationStrategy: 'lru',
+    })
+    const a = createCredential({ providerId: provider.id, label: 'a', secretValue: 's1' })
+    const b = createCredential({ providerId: provider.id, label: 'b', secretValue: 's2' })
+
+    // a has been used; b never has → b (null last_used_at) should come first
+    touchLastUsed(a.id)
+    const first = pickNextCredential(provider)
+    expect(first?.id).toBe(b.id)
+  })
+
+  it('priority strategy picks the lowest priority number first, ties broken by oldest use', async () => {
+    const { createProvider } = await import('../src/lib/providers.repo')
+    const { createCredential } = await import('../src/lib/credentials.repo')
+    const { pickNextCredential } = await import('../src/lib/rotation')
+    const provider = createProvider({
+      slug: 'prio-p',
+      name: 'PRIO',
+      defaultInjectLocation: 'header',
+      defaultInjectKeyName: 'X-API-KEY',
+      defaultBaseUrl: 'https://api.example.com',
+      rotationStrategy: 'priority',
+    })
+    createCredential({ providerId: provider.id, label: 'low-prio', secretValue: 's1', priority: 100 })
+    const premium = createCredential({
+      providerId: provider.id,
+      label: 'premium',
+      secretValue: 's2',
+      priority: 1,
+    })
+
+    const pick = pickNextCredential(provider)
+    expect(pick?.id).toBe(premium.id)
+  })
+})
+
+describe('resolveTarget with inject_value_template', () => {
+  it('renders "Bearer {key}" for OpenAI-style Authorization header', async () => {
+    process.env.ROUTER_SECRET_KEY ??= '0'.repeat(64)
+    const { resolveTarget } = await import('../src/lib/rotation')
+    const provider = {
+      id: 1,
+      slug: 'openai',
+      name: 'OpenAI',
+      defaultInjectLocation: 'header' as const,
+      defaultInjectKeyName: 'Authorization',
+      defaultBaseUrl: 'https://api.openai.com',
+      rotationStrategy: 'priority' as const,
+      defaultInjectValueTemplate: 'Bearer {key}',
+      createdAt: '2026-01-01',
+    }
+    const credential = {
+      id: 1,
+      providerId: 1,
+      label: 'k1',
+      baseUrlOverride: null,
+      secretValue: 'sk-abc123',
+      injectLocationOverride: null,
+      injectKeyNameOverride: null,
+      status: 'active' as const,
+      cooldownUntil: null,
+      lastUsedAt: null,
+      lastError: null,
+      priority: 1,
+      createdAt: '2026-01-01',
+    }
+    const result = resolveTarget(provider, credential, '/v1/chat/completions', new URLSearchParams())
+    expect(result.headers).toEqual({ Authorization: 'Bearer sk-abc123' })
   })
 })

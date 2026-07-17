@@ -14,6 +14,7 @@ export type Credential = {
   cooldownUntil: string | null
   lastUsedAt: string | null
   lastError: string | null
+  priority: number
   createdAt: string
 }
 
@@ -29,6 +30,7 @@ type CredentialRow = {
   cooldown_until: string | null
   last_used_at: string | null
   last_error: string | null
+  priority: number
   created_at: string
 }
 
@@ -45,6 +47,7 @@ function toCredential(row: CredentialRow): Credential {
     cooldownUntil: row.cooldown_until,
     lastUsedAt: row.last_used_at,
     lastError: row.last_error,
+    priority: row.priority,
     createdAt: row.created_at,
   }
 }
@@ -59,8 +62,8 @@ export function listCredentialsByProvider(providerId: number): Credential[] {
 export function createCredential(input: NewCredentialInput): Credential {
   const result = getDb()
     .prepare(
-      `INSERT INTO credentials (provider_id, label, base_url_override, secret_value, inject_location_override, inject_key_name_override)
-       VALUES (@providerId, @label, @baseUrlOverride, @secretValue, @injectLocationOverride, @injectKeyNameOverride)`
+      `INSERT INTO credentials (provider_id, label, base_url_override, secret_value, inject_location_override, inject_key_name_override, priority)
+       VALUES (@providerId, @label, @baseUrlOverride, @secretValue, @injectLocationOverride, @injectKeyNameOverride, @priority)`
     )
     .run({
       providerId: input.providerId,
@@ -69,6 +72,7 @@ export function createCredential(input: NewCredentialInput): Credential {
       secretValue: encryptSecret(input.secretValue),
       injectLocationOverride: input.injectLocationOverride ?? null,
       injectKeyNameOverride: input.injectKeyNameOverride ?? null,
+      priority: input.priority ?? 100,
     })
   const row = getDb()
     .prepare('SELECT * FROM credentials WHERE id = ?')

@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
 export const InjectLocationSchema = z.enum(['query', 'header', 'path'])
+export const RotationStrategySchema = z.enum(['round_robin', 'lru', 'priority'])
+export type RotationStrategy = z.infer<typeof RotationStrategySchema>
 
 export const NewProviderSchema = z.object({
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/, 'slug must be lowercase alphanumeric with dashes'),
@@ -8,6 +10,10 @@ export const NewProviderSchema = z.object({
   defaultInjectLocation: InjectLocationSchema,
   defaultInjectKeyName: z.string().nullable().optional(),
   defaultBaseUrl: z.string().url().nullable().optional(),
+  rotationStrategy: RotationStrategySchema.optional(),
+  // Template applied to the injected value. Use "{key}" as the secret placeholder,
+  // e.g. "Bearer {key}" for Authorization-header providers. Null = inject the raw secret.
+  defaultInjectValueTemplate: z.string().nullable().optional(),
 })
 export type NewProviderInput = z.infer<typeof NewProviderSchema>
 
@@ -18,5 +24,11 @@ export const NewCredentialSchema = z.object({
   baseUrlOverride: z.string().url().nullable().optional(),
   injectLocationOverride: InjectLocationSchema.nullable().optional(),
   injectKeyNameOverride: z.string().nullable().optional(),
+  // Lower number = higher priority (tried first) under the "priority" strategy.
+  priority: z.number().int().optional(),
 })
 export type NewCredentialInput = z.infer<typeof NewCredentialSchema>
+
+export const UpdateProviderSchema = z.object({
+  rotationStrategy: RotationStrategySchema,
+})

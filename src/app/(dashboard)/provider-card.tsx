@@ -9,6 +9,9 @@ const PROVIDER_ICONS: Record<string, string> = {
   birdeye: '◈',
   dexscreener: '▣',
   jupiter: '✦',
+  openai: '❋',
+  anthropic: '✳',
+  gemini: '✧',
 }
 
 export type ProviderCardData = {

@@ -14,11 +14,11 @@ beforeEach(() => {
 })
 
 describe('runBootstrap', () => {
-  it('seeds 5 default providers', async () => {
+  it('seeds all default providers', async () => {
     const { runBootstrap } = await import('../src/lib/bootstrap')
     const { listProviders } = await import('../src/lib/providers.repo')
     runBootstrap()
-    expect(listProviders()).toHaveLength(5)
+    expect(listProviders()).toHaveLength(8)
   })
 
   it('sets a default password hash only if unset', async () => {
@@ -41,7 +41,7 @@ describe('runBootstrap', () => {
     const { listProviders } = await import('../src/lib/providers.repo')
     runBootstrap()
     runBootstrap()
-    expect(listProviders()).toHaveLength(5)
+    expect(listProviders()).toHaveLength(8)
   })
 
   it('prunes logs older than 30 days on every run', async () => {

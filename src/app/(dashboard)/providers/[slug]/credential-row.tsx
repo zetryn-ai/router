@@ -13,9 +13,16 @@ type CredentialView = {
   cooldownUntil: string | null
   lastError: string | null
   baseUrlOverride: string | null
+  priority: number
 }
 
-export function CredentialRow({ credential }: { credential: CredentialView }) {
+export function CredentialRow({
+  credential,
+  showPriority,
+}: {
+  credential: CredentialView
+  showPriority: boolean
+}) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
@@ -50,6 +57,11 @@ export function CredentialRow({ credential }: { credential: CredentialView }) {
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={credential.status} />
           <span className="font-medium">{credential.label}</span>
+          {showPriority && (
+            <span className="rounded-md bg-bg-elevated px-2 py-0.5 font-mono text-xs text-text-muted">
+              prio {credential.priority}
+            </span>
+          )}
         </div>
         {credential.baseUrlOverride && (
           <p className="truncate font-mono text-xs text-text-muted">{credential.baseUrlOverride}</p>

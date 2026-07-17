@@ -30,4 +30,31 @@ describe('getDb', () => {
     const db2 = getDb()
     expect(db1).toBe(db2)
   })
+
+  it('applies migration 002 columns (rotation_strategy, priority, value template)', async () => {
+    const { getDb } = await import('../src/lib/db')
+    const db = getDb()
+    const providerCols = (db.prepare('PRAGMA table_info(providers)').all() as { name: string }[]).map(
+      (c) => c.name
+    )
+    const credentialCols = (
+      db.prepare('PRAGMA table_info(credentials)').all() as { name: string }[]
+    ).map((c) => c.name)
+    expect(providerCols).toEqual(
+      expect.arrayContaining(['rotation_strategy', 'default_inject_value_template'])
+    )
+    expect(credentialCols).toEqual(expect.arrayContaining(['priority']))
+  })
+
+  it('records applied migrations and does not reapply them', async () => {
+    const { getDb } = await import('../src/lib/db')
+    const db = getDb()
+    const applied = (
+      db.prepare('SELECT filename FROM schema_migrations ORDER BY filename').all() as {
+        filename: string
+      }[]
+    ).map((r) => r.filename)
+    expect(applied).toContain('001_init.sql')
+    expect(applied).toContain('002_rotation.sql')
+  })
 })

@@ -4,6 +4,7 @@ import { getProviderBySlug } from '@/lib/providers.repo'
 import { listCredentialsByProvider } from '@/lib/credentials.repo'
 import { CredentialForm } from './credential-form'
 import { CredentialList } from './credential-list'
+import { RotationStrategyControl } from './rotation-strategy-control'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,9 +25,11 @@ export default async function ProviderDetailPage({
     cooldownUntil: c.cooldownUntil,
     lastError: c.lastError,
     baseUrlOverride: c.baseUrlOverride,
+    priority: c.priority,
   }))
 
   const active = credentials.filter((c) => c.status === 'active').length
+  const showPriority = provider.rotationStrategy === 'priority'
 
   return (
     <div className="space-y-6">
@@ -43,6 +46,7 @@ export default async function ProviderDetailPage({
             inject: {provider.defaultInjectLocation}
             {provider.defaultInjectKeyName ? ` (${provider.defaultInjectKeyName})` : ''} · base URL:{' '}
             {provider.defaultBaseUrl ?? 'per-credential'}
+            {provider.defaultInjectValueTemplate ? ` · value: ${provider.defaultInjectValueTemplate}` : ''}
           </p>
         </div>
         <div className="glass-card px-4 py-2.5">
@@ -54,8 +58,9 @@ export default async function ProviderDetailPage({
         </div>
       </div>
 
-      <CredentialList credentials={credentials} />
-      <CredentialForm providerId={provider.id} />
+      <RotationStrategyControl slug={provider.slug} current={provider.rotationStrategy} />
+      <CredentialList credentials={credentials} showPriority={showPriority} />
+      <CredentialForm providerId={provider.id} showPriority={showPriority} />
     </div>
   )
 }

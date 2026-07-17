@@ -11,9 +11,16 @@ type CredentialView = {
   cooldownUntil: string | null
   lastError: string | null
   baseUrlOverride: string | null
+  priority: number
 }
 
-export function CredentialList({ credentials }: { credentials: CredentialView[] }) {
+export function CredentialList({
+  credentials,
+  showPriority,
+}: {
+  credentials: CredentialView[]
+  showPriority: boolean
+}) {
   if (credentials.length === 0) {
     return (
       <div className="glass-card px-5 py-10 text-center text-sm text-text-muted">
@@ -32,7 +39,7 @@ export function CredentialList({ credentials }: { credentials: CredentialView[] 
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.03 }}
           >
-            <CredentialRow credential={cred} />
+            <CredentialRow credential={cred} showPriority={showPriority} />
           </motion.div>
         ))}
       </AnimatePresence>
