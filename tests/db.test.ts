@@ -57,4 +57,15 @@ describe('getDb', () => {
     expect(applied).toContain('001_init.sql')
     expect(applied).toContain('002_rotation.sql')
   })
+
+  it('applies migration 003 (provider category/sticky/is_llm/models, api_keys, combos)', async () => {
+    const { getDb } = await import('../src/lib/db')
+    const db = getDb()
+    const providerCols = (db.prepare('PRAGMA table_info(providers)').all() as { name: string }[]).map((c) => c.name)
+    expect(providerCols).toEqual(
+      expect.arrayContaining(['category', 'sticky_limit', 'is_llm', 'models_json'])
+    )
+    const tables = (db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as { name: string }[]).map((t) => t.name)
+    expect(tables).toEqual(expect.arrayContaining(['api_keys', 'combos']))
+  })
 })
