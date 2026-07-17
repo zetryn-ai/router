@@ -44,3 +44,17 @@ export const UpdateProviderSchema = z.object({
 export const NewApiKeySchema = z.object({
   label: z.string().min(1),
 })
+
+export const ComboStrategySchema = z.enum(['fallback', 'round_robin', 'fusion', 'capacity'])
+export type ComboStrategy = z.infer<typeof ComboStrategySchema>
+
+export const NewComboSchema = z.object({
+  name: z.string().min(1).regex(/^[a-zA-Z0-9._-]+$/, 'only letters, numbers, -, _ and . allowed'),
+  strategy: ComboStrategySchema,
+  models: z.array(z.string().min(1)).min(1),
+})
+
+export const UpdateComboSchema = z.object({
+  strategy: ComboStrategySchema.optional(),
+  models: z.array(z.string().min(1)).min(1).optional(),
+})
