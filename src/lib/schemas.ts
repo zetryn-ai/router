@@ -40,3 +40,7 @@ export const UpdateProviderSchema = z.object({
   rotationStrategy: RotationStrategySchema.optional(),
   stickyLimit: z.number().int().positive().optional(),
 })
+
+export const NewApiKeySchema = z.object({
+  label: z.string().min(1),
+})
