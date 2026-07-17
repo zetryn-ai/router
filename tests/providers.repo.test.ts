@@ -77,4 +77,26 @@ describe('providers.repo', () => {
       defaultBaseUrl: null,
     })
   })
+
+  it('seeds providers with categories and marks LLM providers', async () => {
+    const { seedDefaultProviders, getProviderBySlug } = await import('../src/lib/providers.repo')
+    seedDefaultProviders()
+    expect(getProviderBySlug('helius')).toMatchObject({ category: 'rpc', isLlm: false })
+    expect(getProviderBySlug('birdeye')).toMatchObject({ category: 'data', isLlm: false })
+    expect(getProviderBySlug('jupiter')).toMatchObject({ category: 'swap', isLlm: false })
+    const openai = getProviderBySlug('openai')!
+    expect(openai.category).toBe('llm')
+    expect(openai.isLlm).toBe(true)
+    expect(openai.models).toEqual(expect.arrayContaining(['gpt-4o', 'gpt-4o-mini']))
+  })
+
+  it('setStickyLimit updates the value', async () => {
+    const { createProvider, getProviderBySlug, setStickyLimit } = await import('../src/lib/providers.repo')
+    const p = createProvider({
+      slug: 'sticky-p', name: 'Sticky', defaultInjectLocation: 'header',
+      defaultInjectKeyName: 'X-API-KEY', defaultBaseUrl: 'https://api.example.com',
+    })
+    setStickyLimit(p.id, 5)
+    expect(getProviderBySlug('sticky-p')!.stickyLimit).toBe(5)
+  })
 })

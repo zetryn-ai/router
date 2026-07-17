@@ -1,5 +1,5 @@
 import { getDb } from './db'
-import type { NewProviderInput, RotationStrategy } from './schemas'
+import type { NewProviderInput, RotationStrategy, ProviderCategory } from './schemas'
 
 export type Provider = {
   id: number
@@ -10,6 +10,10 @@ export type Provider = {
   defaultBaseUrl: string | null
   rotationStrategy: RotationStrategy
   defaultInjectValueTemplate: string | null
+  category: ProviderCategory
+  stickyLimit: number
+  isLlm: boolean
+  models: string[]
   createdAt: string
 }
 
@@ -22,6 +26,10 @@ type ProviderRow = {
   default_base_url: string | null
   rotation_strategy: RotationStrategy
   default_inject_value_template: string | null
+  category: ProviderCategory
+  sticky_limit: number
+  is_llm: number
+  models_json: string | null
   created_at: string
 }
 
@@ -35,6 +43,10 @@ function toProvider(row: ProviderRow): Provider {
     defaultBaseUrl: row.default_base_url,
     rotationStrategy: row.rotation_strategy,
     defaultInjectValueTemplate: row.default_inject_value_template,
+    category: row.category,
+    stickyLimit: row.sticky_limit,
+    isLlm: row.is_llm === 1,
+    models: row.models_json ? JSON.parse(row.models_json) : [],
     createdAt: row.created_at,
   }
 }
@@ -54,8 +66,8 @@ export function getProviderBySlug(slug: string): Provider | undefined {
 export function createProvider(input: NewProviderInput): Provider {
   const result = getDb()
     .prepare(
-      `INSERT INTO providers (slug, name, default_inject_location, default_inject_key_name, default_base_url, rotation_strategy, default_inject_value_template)
-       VALUES (@slug, @name, @defaultInjectLocation, @defaultInjectKeyName, @defaultBaseUrl, @rotationStrategy, @defaultInjectValueTemplate)`
+      `INSERT INTO providers (slug, name, default_inject_location, default_inject_key_name, default_base_url, rotation_strategy, default_inject_value_template, category, sticky_limit, is_llm, models_json)
+       VALUES (@slug, @name, @defaultInjectLocation, @defaultInjectKeyName, @defaultBaseUrl, @rotationStrategy, @defaultInjectValueTemplate, @category, @stickyLimit, @isLlm, @modelsJson)`
     )
     .run({
       slug: input.slug,
@@ -65,6 +77,10 @@ export function createProvider(input: NewProviderInput): Provider {
       defaultBaseUrl: input.defaultBaseUrl ?? null,
       rotationStrategy: input.rotationStrategy ?? 'round_robin',
       defaultInjectValueTemplate: input.defaultInjectValueTemplate ?? null,
+      category: input.category ?? 'other',
+      stickyLimit: input.stickyLimit ?? 1,
+      isLlm: input.isLlm ? 1 : 0,
+      modelsJson: input.models ? JSON.stringify(input.models) : null,
     })
   const created = getProviderBySlug(input.slug)
   if (!created) {
@@ -79,6 +95,10 @@ export function setRotationStrategy(providerId: number, strategy: RotationStrate
   getDb().prepare('UPDATE providers SET rotation_strategy = ? WHERE id = ?').run(strategy, providerId)
 }
 
+export function setStickyLimit(providerId: number, limit: number): void {
+  getDb().prepare('UPDATE providers SET sticky_limit = ? WHERE id = ?').run(limit, providerId)
+}
+
 const DEFAULT_PROVIDERS: NewProviderInput[] = [
   {
     slug: 'helius',
@@ -86,6 +106,7 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
     defaultInjectLocation: 'query',
     defaultInjectKeyName: 'api-key',
     defaultBaseUrl: 'https://mainnet.helius-rpc.com',
+    category: 'rpc',
   },
   {
     slug: 'quicknode',
@@ -93,6 +114,7 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
     defaultInjectLocation: 'path',
     defaultInjectKeyName: null,
     defaultBaseUrl: null, // must be set per-credential via base_url_override
+    category: 'rpc',
   },
   {
     slug: 'birdeye',
@@ -100,6 +122,7 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
     defaultInjectLocation: 'header',
     defaultInjectKeyName: 'X-API-KEY',
     defaultBaseUrl: 'https://public-api.birdeye.so',
+    category: 'data',
   },
   {
     slug: 'dexscreener',
@@ -107,6 +130,7 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
     defaultInjectLocation: 'header',
     defaultInjectKeyName: null, // no key required for public endpoints
     defaultBaseUrl: 'https://api.dexscreener.com',
+    category: 'data',
   },
   {
     slug: 'jupiter',
@@ -114,11 +138,12 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
     defaultInjectLocation: 'header',
     defaultInjectKeyName: 'x-api-key',
     defaultBaseUrl: null, // must be set per-credential: lite-api.jup.ag vs api.jup.ag
+    category: 'swap',
   },
   // LLM providers for the OrchestratorAgent — key rotation via the same pool
   // mechanism. Auth goes in the Authorization header as "Bearer <key>", rendered
   // from default_inject_value_template. Default strategy is priority so premium
-  // keys can be tried before free-tier ones.
+  // keys can be tried before free-tier ones. models feed the Combos AI picker.
   {
     slug: 'openai',
     name: 'OpenAI',
@@ -127,6 +152,9 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
     defaultInjectValueTemplate: 'Bearer {key}',
     defaultBaseUrl: 'https://api.openai.com',
     rotationStrategy: 'priority',
+    category: 'llm',
+    isLlm: true,
+    models: ['gpt-4o', 'gpt-4o-mini', 'o1', 'o1-mini'],
   },
   {
     slug: 'anthropic',
@@ -136,6 +164,9 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
     defaultInjectValueTemplate: null, // Anthropic uses the raw key in x-api-key
     defaultBaseUrl: 'https://api.anthropic.com',
     rotationStrategy: 'priority',
+    category: 'llm',
+    isLlm: true,
+    models: ['claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5-20251001'],
   },
   {
     slug: 'gemini',
@@ -144,6 +175,9 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
     defaultInjectKeyName: 'key',
     defaultBaseUrl: 'https://generativelanguage.googleapis.com',
     rotationStrategy: 'priority',
+    category: 'llm',
+    isLlm: true,
+    models: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-3-flash'],
   },
 ]
 

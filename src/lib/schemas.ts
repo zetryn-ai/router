@@ -4,6 +4,9 @@ export const InjectLocationSchema = z.enum(['query', 'header', 'path'])
 export const RotationStrategySchema = z.enum(['round_robin', 'lru', 'priority'])
 export type RotationStrategy = z.infer<typeof RotationStrategySchema>
 
+export const ProviderCategorySchema = z.enum(['rpc', 'data', 'swap', 'llm', 'other'])
+export type ProviderCategory = z.infer<typeof ProviderCategorySchema>
+
 export const NewProviderSchema = z.object({
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/, 'slug must be lowercase alphanumeric with dashes'),
   name: z.string().min(1),
@@ -14,6 +17,10 @@ export const NewProviderSchema = z.object({
   // Template applied to the injected value. Use "{key}" as the secret placeholder,
   // e.g. "Bearer {key}" for Authorization-header providers. Null = inject the raw secret.
   defaultInjectValueTemplate: z.string().nullable().optional(),
+  category: ProviderCategorySchema.optional(),
+  isLlm: z.boolean().optional(),
+  models: z.array(z.string()).optional(),
+  stickyLimit: z.number().int().positive().optional(),
 })
 export type NewProviderInput = z.infer<typeof NewProviderSchema>
 
@@ -30,5 +37,6 @@ export const NewCredentialSchema = z.object({
 export type NewCredentialInput = z.infer<typeof NewCredentialSchema>
 
 export const UpdateProviderSchema = z.object({
-  rotationStrategy: RotationStrategySchema,
+  rotationStrategy: RotationStrategySchema.optional(),
+  stickyLimit: z.number().int().positive().optional(),
 })
