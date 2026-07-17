@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isProtectedPath } from '../src/middleware'
+import { isProtectedPath } from '../src/proxy'
 
 describe('isProtectedPath', () => {
   it('does not protect /proxy/* paths', () => {
