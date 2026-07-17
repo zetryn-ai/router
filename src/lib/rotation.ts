@@ -3,6 +3,7 @@ import type { Credential } from './credentials.repo'
 import type { Provider } from './providers.repo'
 
 const roundRobinPointers = new Map<number, number>()
+const stickyCounts = new Map<number, number>()
 
 // Sort key for "least recently used": a credential that has never been used
 // (lastUsedAt === null) is the most stale, so it sorts first.
@@ -29,10 +30,20 @@ export function pickNextCredential(provider: Provider): Credential | null {
     }
     case 'round_robin':
     default: {
-      const lastIndex = roundRobinPointers.get(provider.id) ?? -1
-      const nextIndex = (lastIndex + 1) % active.length
-      roundRobinPointers.set(provider.id, nextIndex)
-      return active[nextIndex]
+      const limit = Math.max(1, provider.stickyLimit ?? 1)
+      const used = stickyCounts.get(provider.id) ?? 0
+      let index = roundRobinPointers.get(provider.id) ?? 0
+      if (used >= limit) {
+        // sticky window exhausted — advance to the next credential and reset the counter
+        index = (index + 1) % active.length
+        roundRobinPointers.set(provider.id, index)
+        stickyCounts.set(provider.id, 1)
+      } else {
+        if (index >= active.length) index = 0
+        roundRobinPointers.set(provider.id, index)
+        stickyCounts.set(provider.id, used + 1)
+      }
+      return active[index]
     }
   }
 }

@@ -50,6 +50,29 @@ describe('pickNextCredential', () => {
     expect([a.id, b.id]).toEqual(expect.arrayContaining([picks[0], picks[1]]))
   })
 
+  it('sticky round-robin repeats the same credential stickyLimit times before advancing', async () => {
+    const { createProvider } = await import('../src/lib/providers.repo')
+    const { createCredential } = await import('../src/lib/credentials.repo')
+    const { pickNextCredential } = await import('../src/lib/rotation')
+    const provider = createProvider({
+      slug: 'sticky-rr', name: 'StickyRR', defaultInjectLocation: 'header',
+      defaultInjectKeyName: 'X-API-KEY', defaultBaseUrl: 'https://api.example.com',
+      stickyLimit: 2,
+    })
+    createCredential({ providerId: provider.id, label: 'a', secretValue: 's1' })
+    createCredential({ providerId: provider.id, label: 'b', secretValue: 's2' })
+    const picks = [
+      pickNextCredential(provider)!.label,
+      pickNextCredential(provider)!.label,
+      pickNextCredential(provider)!.label,
+      pickNextCredential(provider)!.label,
+    ]
+    // stickyLimit=2 → a,a,b,b
+    expect(picks[0]).toBe(picks[1])
+    expect(picks[2]).toBe(picks[3])
+    expect(picks[0]).not.toBe(picks[2])
+  })
+
   it('skips disabled and error credentials, and cooldown credentials whose time has not passed', async () => {
     const { createProvider } = await import('../src/lib/providers.repo')
     const { createCredential, markDisabled, markError, markCooldown } = await import(
