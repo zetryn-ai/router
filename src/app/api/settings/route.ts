@@ -15,7 +15,16 @@ const CooldownChangeSchema = z.object({
   seconds: z.number().int().positive(),
 })
 
-const BodySchema = z.discriminatedUnion('type', [PasswordChangeSchema, CooldownChangeSchema])
+const RequireApiKeySchema = z.object({
+  type: z.literal('require_api_key'),
+  enabled: z.boolean(),
+})
+
+const BodySchema = z.discriminatedUnion('type', [
+  PasswordChangeSchema,
+  CooldownChangeSchema,
+  RequireApiKeySchema,
+])
 
 export async function PUT(req: NextRequest) {
   const body = await req.json()
@@ -30,6 +39,11 @@ export async function PUT(req: NextRequest) {
       return Response.json({ error: 'current password is incorrect' }, { status: 401 })
     }
     setSetting('dashboard_password_hash', hashPassword(parsed.data.newPassword))
+    return Response.json({ ok: true })
+  }
+
+  if (parsed.data.type === 'require_api_key') {
+    setSetting('require_api_key', parsed.data.enabled ? '1' : '0')
     return Response.json({ ok: true })
   }
 
