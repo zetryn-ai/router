@@ -5,6 +5,7 @@ import { listCredentialsByProvider } from '@/lib/credentials.repo'
 import { CredentialForm } from './credential-form'
 import { CredentialList } from './credential-list'
 import { RotationStrategyControl } from './rotation-strategy-control'
+import { StickyControl } from './sticky-control'
 
 export const dynamic = 'force-dynamic'
 
@@ -59,6 +60,19 @@ export default async function ProviderDetailPage({
       </div>
 
       <RotationStrategyControl slug={provider.slug} current={provider.rotationStrategy} />
+      <StickyControl slug={provider.slug} current={provider.stickyLimit} />
+      {provider.isLlm && provider.models.length > 0 && (
+        <div className="glass-card space-y-3 p-5">
+          <h3 className="font-semibold">Available Models</h3>
+          <div className="flex flex-wrap gap-2">
+            {provider.models.map((m) => (
+              <span key={m} className="rounded-lg border border-border-default bg-bg-elevated px-2.5 py-1 font-mono text-xs">
+                {provider.slug}/{m}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       <CredentialList credentials={credentials} showPriority={showPriority} />
       <CredentialForm providerId={provider.id} showPriority={showPriority} />
     </div>
