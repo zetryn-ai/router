@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { listProviders } from '@/lib/providers.repo'
 import { listCredentialsByProvider } from '@/lib/credentials.repo'
+import { AddProviderForm } from './add-provider-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,6 +31,7 @@ export default function ProvidersOverviewPage() {
           )
         })}
       </div>
+      <AddProviderForm />
     </div>
   )
 }
