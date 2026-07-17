@@ -73,6 +73,35 @@ http://127.0.0.1:4790/proxy/openai/v1/chat/completions
 
 The router injects `Authorization: Bearer <key>` (rendered from the provider's value template) and rotates by priority — no key handling in the agent itself. Anthropic and Gemini work the same way with their respective auth conventions.
 
+## Sticky round-robin
+
+Each provider has a **Sticky** value (default 1). Under the round-robin strategy the router reuses the same credential for that many requests before advancing to the next one — useful when an upstream ties rate limits or sessions to a single key. Set it on the provider detail page.
+
+## Consumer API keys
+
+The dashboard's **API Endpoint** page issues consumer API keys (`zr_…`) that your bot components present to the router. Keys are stored hashed (salted scrypt) and the plaintext is shown only once at creation.
+
+- Toggle **Require API key** on to enforce it. When enabled, every `/proxy/*` and `/proxy/combo/*` request must send `Authorization: Bearer zr_…` or it's rejected with `401` before any upstream credential is touched.
+- Enforcement is off by default so existing loopback bot calls keep working until you turn it on.
+- The `Authorization` header is consumed by the router and never forwarded upstream.
+
+## Combos AI (LLM only)
+
+The **Combos AI** page groups several LLM models under one name and routes across them by strategy. Members are `"<provider-slug>/<model-id>"` and must come from LLM providers (`openai`, `anthropic`, `gemini`) — RPC/data/swap providers cannot be combo members.
+
+Call a combo like an OpenAI-compatible endpoint:
+
+```
+POST http://127.0.0.1:4790/proxy/combo/<name>/v1/chat/completions
+{ "model": "<name>", "messages": [...] }
+```
+
+The router rewrites the body's `model` field to the concrete member model id and dispatches by strategy:
+
+- **fallback** — try members in order until one returns 2xx.
+- **round_robin** — rotate the starting member per request, then fall back through the rest.
+- **fusion** and **capacity** — selectable and stored, but currently behave as fallback (parallel-judge synthesis and media-capability routing are not yet implemented).
+
 ## Tests
 
 ```bash
