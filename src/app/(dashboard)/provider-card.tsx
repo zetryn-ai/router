@@ -17,6 +17,7 @@ const PROVIDER_ICONS: Record<string, string> = {
 export type ProviderCardData = {
   slug: string
   name: string
+  category: string
   active: number
   cooldown: number
   disabled: number
