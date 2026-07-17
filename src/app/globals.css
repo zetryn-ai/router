@@ -1,26 +1,241 @@
 @import "tailwindcss";
 
+/* ============================================================================
+ * Zetryn Router — Theme: Polygon preset (violet, enterprise/infra vibe)
+ * Full dark & light parity. Light is the default (data-theme="light").
+ * ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  --bg-base: #fafafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f3f1fa;
+  --bg-overlay: rgba(255, 255, 255, 0.7);
+
+  --border-subtle: #eceaf5;
+  --border-default: #d8d4ea;
+  --border-glow: rgba(94, 53, 177, 0.25);
+
+  --text-primary: #0f0e1a;
+  --text-secondary: #4a4666;
+  --text-muted: #8a86a8;
+
+  --accent-primary: #5e35b1;
+  --accent-secondary: #7f58d1;
+  --accent-tertiary: #0097a7;
+  --accent-gold: #f57c00;
+  --accent-mint: #00a878;
+
+  --success: #00a878;
+  --warning: #f57c00;
+  --danger: #e53935;
+  --info: #0097a7;
+
+  --gradient-hero: linear-gradient(135deg, #5e35b1 0%, #7f58d1 100%);
+  --gradient-card: linear-gradient(145deg, rgba(94, 53, 177, 0.08), rgba(127, 88, 209, 0.04));
+  --gradient-glow: radial-gradient(circle, rgba(94, 53, 177, 0.15) 0%, transparent 70%);
+
+  --shadow-sm: 0 1px 2px rgba(15, 14, 26, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 14, 26, 0.08);
+  --shadow-lg: 0 12px 32px rgba(15, 14, 26, 0.12);
+  --glow-primary: 0 0 24px rgba(94, 53, 177, 0.3);
+  --glow-secondary: 0 0 24px rgba(127, 88, 209, 0.25);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-base: #0b0a14;
+  --bg-surface: #14121f;
+  --bg-elevated: #1c1a2e;
+  --bg-overlay: rgba(11, 10, 20, 0.7);
+
+  --border-subtle: #1f1d30;
+  --border-default: #2c2944;
+  --border-glow: rgba(130, 71, 229, 0.4);
+
+  --text-primary: #f2f1f8;
+  --text-secondary: #a8a4c0;
+  --text-muted: #6e6a88;
+
+  --accent-primary: #8247e5;
+  --accent-secondary: #a57bff;
+  --accent-tertiary: #00e5ff;
+  --accent-gold: #ffb800;
+  --accent-mint: #00ffa3;
+
+  --success: #00c896;
+  --warning: #ffb800;
+  --danger: #ff3d71;
+  --info: #00e5ff;
+
+  --gradient-hero: linear-gradient(135deg, #8247e5 0%, #a57bff 100%);
+  --gradient-card: linear-gradient(145deg, rgba(130, 71, 229, 0.15), rgba(165, 123, 255, 0.05));
+  --gradient-glow: radial-gradient(circle, rgba(130, 71, 229, 0.4) 0%, transparent 70%);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --glow-primary: 0 0 24px rgba(130, 71, 229, 0.5);
+  --glow-secondary: 0 0 24px rgba(165, 123, 255, 0.4);
+}
+
+/* Explicit light override (next-themes sets this once the user picks a theme
+   or on first mount) — same tokens as :root, kept separate so specificity
+   never depends on rule order relative to [data-theme="dark"]. */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-base: #fafafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f3f1fa;
+  --bg-overlay: rgba(255, 255, 255, 0.7);
+
+  --border-subtle: #eceaf5;
+  --border-default: #d8d4ea;
+  --border-glow: rgba(94, 53, 177, 0.25);
+
+  --text-primary: #0f0e1a;
+  --text-secondary: #4a4666;
+  --text-muted: #8a86a8;
+
+  --accent-primary: #5e35b1;
+  --accent-secondary: #7f58d1;
+  --accent-tertiary: #0097a7;
+  --accent-gold: #f57c00;
+  --accent-mint: #00a878;
+
+  --success: #00a878;
+  --warning: #f57c00;
+  --danger: #e53935;
+  --info: #0097a7;
+
+  --gradient-hero: linear-gradient(135deg, #5e35b1 0%, #7f58d1 100%);
+  --gradient-card: linear-gradient(145deg, rgba(94, 53, 177, 0.08), rgba(127, 88, 209, 0.04));
+  --gradient-glow: radial-gradient(circle, rgba(94, 53, 177, 0.15) 0%, transparent 70%);
+
+  --shadow-sm: 0 1px 2px rgba(15, 14, 26, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 14, 26, 0.08);
+  --shadow-lg: 0 12px 32px rgba(15, 14, 26, 0.12);
+  --glow-primary: 0 0 24px rgba(94, 53, 177, 0.3);
+  --glow-secondary: 0 0 24px rgba(127, 88, 209, 0.25);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-glow: var(--border-glow);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-accent-tertiary: var(--accent-tertiary);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-mint: var(--accent-mint);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  --shadow-glow-primary: var(--glow-primary);
+  --shadow-glow-secondary: var(--glow-secondary);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@utility bg-gradient-hero {
+  background-image: var(--gradient-hero);
+}
+@utility bg-gradient-card {
+  background-image: var(--gradient-card);
+}
+@utility bg-gradient-glow {
+  background-image: var(--gradient-glow);
+}
+
+@utility glass-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-md);
+}
+@supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
+  .glass-card {
+    background-color: color-mix(in srgb, var(--bg-surface) 68%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid color-mix(in srgb, var(--border-default) 50%, transparent);
   }
 }
 
+@utility glass-nav {
+  background-color: color-mix(in srgb, var(--bg-surface) 78%, transparent);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+* {
+  border-color: var(--border-default);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent-primary) 30%, transparent);
+}
+
+/* thin, theme-aware scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-secondary);
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }

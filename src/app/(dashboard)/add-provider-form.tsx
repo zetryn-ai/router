@@ -2,8 +2,11 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import { TextInput, Select, FieldLabel, Button } from '@/components/ui'
 
 export function AddProviderForm() {
+  const [open, setOpen] = useState(false)
   const [slug, setSlug] = useState('')
   const [name, setName] = useState('')
   const [injectLocation, setInjectLocation] = useState<'query' | 'header' | 'path'>('header')
@@ -37,52 +40,93 @@ export function AddProviderForm() {
       setName('')
       setInjectKeyName('')
       setDefaultBaseUrl('')
+      setOpen(false)
       router.refresh()
     })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md space-y-3 rounded-lg border border-gray-800 bg-gray-900 p-4">
-      <h3 className="font-semibold">Add custom provider</h3>
-      <input
-        value={slug}
-        onChange={(e) => setSlug(e.target.value)}
-        placeholder="slug (lowercase-with-dashes)"
-        className="w-full rounded border border-gray-700 bg-gray-800 px-3 py-2"
-        required
-      />
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Display name"
-        className="w-full rounded border border-gray-700 bg-gray-800 px-3 py-2"
-        required
-      />
-      <select
-        value={injectLocation}
-        onChange={(e) => setInjectLocation(e.target.value as 'query' | 'header' | 'path')}
-        className="w-full rounded border border-gray-700 bg-gray-800 px-3 py-2"
+    <div className="glass-card overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-5 py-4 text-left"
       >
-        <option value="header">Header</option>
-        <option value="query">Query param</option>
-        <option value="path">Path (key baked into base URL per credential)</option>
-      </select>
-      <input
-        value={injectKeyName}
-        onChange={(e) => setInjectKeyName(e.target.value)}
-        placeholder="Inject key name (e.g. X-API-KEY) — leave blank for path-based"
-        className="w-full rounded border border-gray-700 bg-gray-800 px-3 py-2"
-      />
-      <input
-        value={defaultBaseUrl}
-        onChange={(e) => setDefaultBaseUrl(e.target.value)}
-        placeholder="Default base URL (optional if set per-credential)"
-        className="w-full rounded border border-gray-700 bg-gray-800 px-3 py-2"
-      />
-      {error && <p className="text-sm text-red-400">{error}</p>}
-      <button disabled={isPending} className="rounded bg-blue-600 px-3 py-2 disabled:opacity-50">
-        {isPending ? 'Adding...' : 'Add provider'}
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-hero text-sm text-white">
+            +
+          </span>
+          <span className="font-semibold">Add custom provider</span>
+        </div>
+        <motion.span animate={{ rotate: open ? 45 : 0 }} className="text-xl text-text-muted">
+          +
+        </motion.span>
       </button>
-    </form>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="overflow-hidden"
+          >
+            <form onSubmit={handleSubmit} className="grid gap-3.5 border-t border-border-subtle p-5 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <FieldLabel>Slug</FieldLabel>
+                <TextInput
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="lowercase-with-dashes"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <FieldLabel>Display name</FieldLabel>
+                <TextInput value={name} onChange={(e) => setName(e.target.value)} placeholder="My Provider" required />
+              </div>
+              <div className="space-y-1.5">
+                <FieldLabel>Key injection</FieldLabel>
+                <Select
+                  value={injectLocation}
+                  onChange={(e) => setInjectLocation(e.target.value as 'query' | 'header' | 'path')}
+                >
+                  <option value="header">Header</option>
+                  <option value="query">Query param</option>
+                  <option value="path">Path (baked into per-credential base URL)</option>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <FieldLabel>Inject key name</FieldLabel>
+                <TextInput
+                  value={injectKeyName}
+                  onChange={(e) => setInjectKeyName(e.target.value)}
+                  placeholder="e.g. X-API-KEY (blank for path-based)"
+                />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <FieldLabel>Default base URL</FieldLabel>
+                <TextInput
+                  value={defaultBaseUrl}
+                  onChange={(e) => setDefaultBaseUrl(e.target.value)}
+                  placeholder="Optional if set per-credential"
+                />
+              </div>
+
+              {error && (
+                <p className="text-sm text-danger sm:col-span-2">{error}</p>
+              )}
+
+              <div className="sm:col-span-2">
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? 'Adding…' : 'Add provider'}
+                </Button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }

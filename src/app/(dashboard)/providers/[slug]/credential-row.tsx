@@ -2,21 +2,17 @@
 
 import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { StatusBadge, type CredentialStatus } from '@/components/status-badge'
+import { Button } from '@/components/ui'
 
 type CredentialView = {
   id: number
   label: string
-  status: 'active' | 'cooldown' | 'disabled' | 'error'
+  status: CredentialStatus
   cooldownUntil: string | null
   lastError: string | null
   baseUrlOverride: string | null
-}
-
-const STATUS_COLORS: Record<CredentialView['status'], string> = {
-  active: 'bg-green-600',
-  cooldown: 'bg-yellow-600',
-  disabled: 'bg-gray-600',
-  error: 'bg-red-600',
 }
 
 export function CredentialRow({ credential }: { credential: CredentialView }) {
@@ -35,6 +31,7 @@ export function CredentialRow({ credential }: { credential: CredentialView }) {
   }
 
   function remove() {
+    if (!confirm(`Delete credential "${credential.label}"? This cannot be undone.`)) return
     startTransition(async () => {
       await fetch(`/api/credentials/${credential.id}`, { method: 'DELETE' })
       router.refresh()
@@ -42,33 +39,37 @@ export function CredentialRow({ credential }: { credential: CredentialView }) {
   }
 
   return (
-    <div className="flex items-center justify-between rounded border border-gray-800 bg-gray-900 p-3">
-      <div>
-        <span className={`mr-2 rounded px-2 py-0.5 text-xs ${STATUS_COLORS[credential.status]}`}>
-          {credential.status}
-        </span>
-        <span className="font-medium">{credential.label}</span>
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: isPending ? 0.5 : 1, y: 0 }}
+      exit={{ opacity: 0, height: 0 }}
+      className="glass-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div className="min-w-0 space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge status={credential.status} />
+          <span className="font-medium">{credential.label}</span>
+        </div>
         {credential.baseUrlOverride && (
-          <p className="text-xs text-gray-500">{credential.baseUrlOverride}</p>
+          <p className="truncate font-mono text-xs text-text-muted">{credential.baseUrlOverride}</p>
         )}
         {credential.status === 'cooldown' && credential.cooldownUntil && (
-          <p className="text-xs text-yellow-400">cooldown until {credential.cooldownUntil} UTC</p>
+          <p className="font-mono text-xs text-warning">cooldown until {credential.cooldownUntil} UTC</p>
         )}
-        {credential.lastError && (
-          <p className="text-xs text-red-400">{credential.lastError}</p>
-        )}
+        {credential.lastError && <p className="font-mono text-xs text-danger">{credential.lastError}</p>}
       </div>
-      <div className="flex gap-2">
-        <button disabled={isPending} onClick={() => act('reactivate')} className="text-sm text-blue-400">
+      <div className="flex shrink-0 gap-2">
+        <Button variant="ghost" disabled={isPending} onClick={() => act('reactivate')} className="px-3 py-1.5 text-xs">
           Reactivate
-        </button>
-        <button disabled={isPending} onClick={() => act('disable')} className="text-sm text-gray-400">
+        </Button>
+        <Button variant="ghost" disabled={isPending} onClick={() => act('disable')} className="px-3 py-1.5 text-xs">
           Disable
-        </button>
-        <button disabled={isPending} onClick={remove} className="text-sm text-red-400">
+        </Button>
+        <Button variant="danger" disabled={isPending} onClick={remove} className="px-3 py-1.5 text-xs">
           Delete
-        </button>
+        </Button>
       </div>
-    </div>
+    </motion.div>
   )
 }
