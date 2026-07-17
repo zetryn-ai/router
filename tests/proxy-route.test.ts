@@ -10,6 +10,7 @@ beforeEach(() => {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true })
   process.env.DATA_DIR = TEST_DATA_DIR
   process.env.ROUTER_SECRET_KEY = '0'.repeat(64)
+  process.env.JWT_SECRET = 'test-jwt'
 })
 
 async function setupProviderWithTwoCredentials() {
@@ -229,5 +230,34 @@ describe('handleProxyRequest', () => {
     expect(logs).toHaveLength(2)
     const codes = logs.map((l) => l.statusCode).sort()
     expect(codes).toEqual([200, 429])
+  })
+
+  it('rejects with 401 when require_api_key is on and no key is supplied', async () => {
+    const { provider } = await setupProviderWithTwoCredentials()
+    const { setSetting } = await import('../src/lib/settings.repo')
+    setSetting('require_api_key', '1')
+    const { handleProxyRequest } = await import('../src/lib/proxy-orchestrator')
+    const fetchFn = vi.fn()
+    const result = await handleProxyRequest({
+      slug: provider.slug, path: '/foo', query: new URLSearchParams(),
+      method: 'GET', body: null, headers: {}, fetchFn, authorization: null,
+    })
+    expect(result.status).toBe(401)
+    expect(fetchFn).not.toHaveBeenCalled()
+  })
+
+  it('accepts a valid consumer key when enforcement is on', async () => {
+    const { provider } = await setupProviderWithTwoCredentials()
+    const { setSetting } = await import('../src/lib/settings.repo')
+    const { createApiKey } = await import('../src/lib/apikeys.repo')
+    setSetting('require_api_key', '1')
+    const { plaintext } = createApiKey('bot')
+    const { handleProxyRequest } = await import('../src/lib/proxy-orchestrator')
+    const fetchFn = vi.fn().mockResolvedValue(new Response('ok', { status: 200 }))
+    const result = await handleProxyRequest({
+      slug: provider.slug, path: '/foo', query: new URLSearchParams(),
+      method: 'GET', body: null, headers: {}, fetchFn, authorization: `Bearer ${plaintext}`,
+    })
+    expect(result.status).toBe(200)
   })
 })

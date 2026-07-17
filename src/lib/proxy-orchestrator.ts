@@ -3,8 +3,13 @@ import { pickNextCredential, resolveTarget } from './rotation'
 import { markCooldown, markError, touchLastUsed, listCredentialsByProvider } from './credentials.repo'
 import { logRequest } from './logs.repo'
 import { getSetting } from './settings.repo'
+import { verifyApiKey } from './apikeys.repo'
 
 const DEFAULT_COOLDOWN_SECONDS = 60
+
+export function requireApiKeyEnabled(): boolean {
+  return getSetting('require_api_key') === '1'
+}
 
 function cooldownSecondsFor(providerSlug: string): number {
   const configured = getSetting(`cooldown_seconds_default:${providerSlug}`)
@@ -20,6 +25,7 @@ export type ProxyRequestInput = {
   body: BodyInit | null
   headers: Record<string, string>
   fetchFn: (url: string, init: RequestInit) => Promise<Response>
+  authorization?: string | null
 }
 
 export type ProxyResult = {
@@ -30,6 +36,13 @@ export type ProxyResult = {
 }
 
 export async function handleProxyRequest(input: ProxyRequestInput): Promise<ProxyResult> {
+  if (requireApiKeyEnabled()) {
+    const token = (input.authorization ?? '').replace(/^Bearer\s+/i, '').trim()
+    if (!token || !verifyApiKey(token)) {
+      return { status: 401, body: { error: 'invalid or missing API key' } }
+    }
+  }
+
   const provider = getProviderBySlug(input.slug)
   if (!provider) {
     return { status: 404, body: { error: `unknown provider "${input.slug}"` } }

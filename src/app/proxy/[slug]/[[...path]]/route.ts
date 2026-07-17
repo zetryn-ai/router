@@ -10,8 +10,14 @@ async function handle(req: NextRequest, params: { slug: string; path?: string[] 
   const method = req.method
   const body = method === 'GET' || method === 'HEAD' ? null : await req.arrayBuffer()
   const headers: Record<string, string> = {}
+  let authorization: string | null = null
   req.headers.forEach((value, key) => {
-    if (!STRIP_REQUEST_HEADERS.includes(key.toLowerCase())) {
+    const lower = key.toLowerCase()
+    if (lower === 'authorization') {
+      authorization = value // consumed by the router for consumer-key auth, never forwarded upstream
+      return
+    }
+    if (!STRIP_REQUEST_HEADERS.includes(lower)) {
       headers[key] = value
     }
   })
@@ -24,6 +30,7 @@ async function handle(req: NextRequest, params: { slug: string; path?: string[] 
     body: body as BodyInit | null,
     headers,
     fetchFn: fetch,
+    authorization,
   })
 
   if (result.stream !== undefined) {
