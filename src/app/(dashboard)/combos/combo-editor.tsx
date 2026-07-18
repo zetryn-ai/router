@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { TextInput, Select, FieldLabel, Button } from '@/components/ui'
 
 type ComboView = { name: string; strategy: string; models: string[] }
 type ModelOption = { value: string; label: string }
+type MergedOption = ModelOption & { stale: boolean }
 
 const STRATEGIES = [
   { value: 'fallback', label: 'Fallback — try in order' },
@@ -30,6 +31,18 @@ export function ComboEditor({
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+
+  // Show every selectable model (LLM providers with an active key), plus any
+  // model already saved on this combo whose provider no longer has an active
+  // key — flagged "no active key" so the user can still see and remove it.
+  const mergedOptions = useMemo<MergedOption[]>(() => {
+    const active = modelOptions.map((o) => ({ ...o, stale: false }))
+    const activeValues = new Set(active.map((o) => o.value))
+    const staleSelected = (existing?.models ?? [])
+      .filter((m) => !activeValues.has(m))
+      .map((m) => ({ value: m, label: m, stale: true }))
+    return [...active, ...staleSelected]
+  }, [modelOptions, existing])
 
   function toggleModel(v: string) {
     setModels((prev) => (prev.includes(v) ? prev.filter((m) => m !== v) : [...prev, v]))
@@ -80,21 +93,31 @@ export function ComboEditor({
         </div>
 
         <div className="space-y-1.5">
-          <FieldLabel>Models (AI providers only)</FieldLabel>
+          <FieldLabel>Models (AI providers with an active key)</FieldLabel>
           <div className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-border-default p-2">
-            {modelOptions.length === 0 && (
-              <p className="px-2 py-1.5 text-xs text-text-muted">No LLM providers configured yet.</p>
+            {mergedOptions.length === 0 && (
+              <p className="px-2 py-1.5 text-xs text-text-muted">
+                No LLM providers with an active credential yet — add a key on the provider page first.
+              </p>
             )}
-            {modelOptions.map((opt) => (
+            {mergedOptions.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => toggleModel(opt.value)}
-                className={`block w-full rounded-md px-2.5 py-1.5 text-left font-mono text-xs transition-colors ${
+                className={`flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-left font-mono text-xs transition-colors ${
                   models.includes(opt.value) ? 'bg-gradient-hero text-white' : 'hover:bg-bg-elevated'
                 }`}
               >
-                {models.includes(opt.value) ? '✓ ' : ''}{opt.label}
+                <span>
+                  {models.includes(opt.value) ? '✓ ' : ''}
+                  {opt.label}
+                </span>
+                {opt.stale && (
+                  <span className="ml-2 rounded bg-warning/20 px-1.5 py-0.5 text-[10px] font-sans text-warning">
+                    no active key
+                  </span>
+                )}
               </button>
             ))}
           </div>

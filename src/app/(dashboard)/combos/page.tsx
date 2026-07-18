@@ -22,7 +22,11 @@ export default function CombosPage() {
     const providers = await providersRes.json()
     const opts: ModelOption[] = []
     for (const p of providers) {
+      // Only offer models from LLM providers that actually have an active
+      // credential — a combo member pointing at a keyless provider would just
+      // fail at request time.
       if (!p.isLlm) continue
+      if (!p.credentialCounts || p.credentialCounts.active < 1) continue
       for (const m of p.models ?? []) opts.push({ value: `${p.slug}/${m}`, label: `${p.slug}/${m}` })
     }
     setModelOptions(opts)
