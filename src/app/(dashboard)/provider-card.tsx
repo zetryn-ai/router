@@ -18,10 +18,25 @@ export type ProviderCardData = {
   slug: string
   name: string
   category: string
+  isFree: boolean
   active: number
   cooldown: number
   disabled: number
   error: number
+}
+
+export function FreeBadge() {
+  return (
+    <span
+      className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+      style={{
+        backgroundColor: 'color-mix(in srgb, var(--success) 18%, transparent)',
+        color: 'var(--success)',
+      }}
+    >
+      Free
+    </span>
+  )
 }
 
 function StatPill({ label, value, tone }: { label: string; value: number; tone: string }) {
@@ -59,7 +74,10 @@ export function ProviderCard({ provider, index }: { provider: ProviderCardData; 
               {PROVIDER_ICONS[provider.slug] ?? '●'}
             </span>
             <div>
-              <h2 className="font-semibold text-text-primary">{provider.name}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="font-semibold text-text-primary">{provider.name}</h2>
+                {provider.isFree && <FreeBadge />}
+              </div>
               <p className="text-xs text-text-muted">{total} credential{total === 1 ? '' : 's'}</p>
             </div>
           </div>

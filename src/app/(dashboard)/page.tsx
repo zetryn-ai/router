@@ -14,6 +14,7 @@ export default function ProvidersOverviewPage() {
       slug: provider.slug,
       name: provider.name,
       category: provider.category,
+      isFree: provider.isFree,
       active: creds.filter((c) => c.status === 'active').length,
       cooldown: creds.filter((c) => c.status === 'cooldown').length,
       disabled: creds.filter((c) => c.status === 'disabled').length,

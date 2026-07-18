@@ -18,7 +18,7 @@ describe('runBootstrap', () => {
     const { runBootstrap } = await import('../src/lib/bootstrap')
     const { listProviders } = await import('../src/lib/providers.repo')
     runBootstrap()
-    expect(listProviders()).toHaveLength(8)
+    expect(listProviders()).toHaveLength(50)
   })
 
   it('sets a default password hash only if unset', async () => {
@@ -41,7 +41,7 @@ describe('runBootstrap', () => {
     const { listProviders } = await import('../src/lib/providers.repo')
     runBootstrap()
     runBootstrap()
-    expect(listProviders()).toHaveLength(8)
+    expect(listProviders()).toHaveLength(50)
   })
 
   it('prunes logs older than 30 days on every run', async () => {

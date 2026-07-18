@@ -30,28 +30,31 @@ describe('providers.repo', () => {
     const { seedDefaultProviders, listProviders } = await import('../src/lib/providers.repo')
     seedDefaultProviders()
     seedDefaultProviders() // calling twice must not duplicate
-    const slugs = listProviders().map((p) => p.slug).sort()
-    expect(slugs).toEqual([
-      'anthropic',
-      'birdeye',
-      'dexscreener',
-      'gemini',
-      'helius',
-      'jupiter',
-      'openai',
-      'quicknode',
-    ])
+    const providers = listProviders()
+    const slugs = providers.map((p) => p.slug)
+    // core Solana providers present
+    expect(slugs).toEqual(
+      expect.arrayContaining(['helius', 'quicknode', 'birdeye', 'dexscreener', 'jupiter'])
+    )
+    // AI-only-free rule: free LLM providers seeded, pure-paid ones omitted
+    expect(slugs).toEqual(expect.arrayContaining(['groq', 'gemini', 'openrouter', 'cerebras']))
+    expect(slugs).not.toContain('openai')
+    expect(slugs).not.toContain('anthropic')
+    // idempotent — no duplicate slugs
+    expect(new Set(slugs).size).toBe(slugs.length)
   })
 
-  it('seeds LLM providers with priority strategy and value templates', async () => {
+  it('seeds free LLM providers with priority strategy and value templates', async () => {
     const { seedDefaultProviders, getProviderBySlug } = await import('../src/lib/providers.repo')
     seedDefaultProviders()
-    const openai = getProviderBySlug('openai')
-    expect(openai).toMatchObject({
+    const groq = getProviderBySlug('groq')
+    expect(groq).toMatchObject({
       defaultInjectLocation: 'header',
       defaultInjectKeyName: 'Authorization',
       defaultInjectValueTemplate: 'Bearer {key}',
       rotationStrategy: 'priority',
+      isLlm: true,
+      isFree: true,
     })
     // Solana/data providers keep the default round_robin strategy
     expect(getProviderBySlug('helius')?.rotationStrategy).toBe('round_robin')
@@ -78,32 +81,34 @@ describe('providers.repo', () => {
     })
   })
 
-  it('seeds providers with categories and marks LLM providers', async () => {
+  it('seeds providers with categories, marks LLM + free providers', async () => {
     const { seedDefaultProviders, getProviderBySlug } = await import('../src/lib/providers.repo')
     seedDefaultProviders()
-    expect(getProviderBySlug('helius')).toMatchObject({ category: 'rpc', isLlm: false })
-    expect(getProviderBySlug('birdeye')).toMatchObject({ category: 'data', isLlm: false })
-    expect(getProviderBySlug('jupiter')).toMatchObject({ category: 'swap', isLlm: false })
-    const openai = getProviderBySlug('openai')!
-    expect(openai.category).toBe('llm')
-    expect(openai.isLlm).toBe(true)
-    expect(openai.models).toEqual(expect.arrayContaining(['gpt-4o', 'gpt-4o-mini']))
+    expect(getProviderBySlug('helius')).toMatchObject({ category: 'rpc', isLlm: false, isFree: true })
+    expect(getProviderBySlug('birdeye')).toMatchObject({ category: 'data', isLlm: false, isFree: false })
+    expect(getProviderBySlug('jupiter')).toMatchObject({ category: 'swap', isLlm: false, isFree: true })
+    const groq = getProviderBySlug('groq')!
+    expect(groq.category).toBe('llm')
+    expect(groq.isLlm).toBe(true)
+    expect(groq.isFree).toBe(true)
+    expect(groq.models).toEqual(expect.arrayContaining(['llama-3.3-70b-versatile']))
   })
 
-  it('backfills category/isLlm/models onto a pre-existing default provider (upgrade path)', async () => {
+  it('backfills category/isLlm/models/isFree onto a pre-existing default provider (upgrade path)', async () => {
     const { createProvider, seedDefaultProviders, getProviderBySlug } = await import('../src/lib/providers.repo')
-    // Simulate a provider seeded before migration 003 metadata existed:
-    // created with defaults (category 'other', isLlm false, no models).
+    // Simulate 'groq' seeded before the metadata columns existed:
+    // created with defaults (category 'other', isLlm false, not free).
     createProvider({
-      slug: 'openai', name: 'OpenAI', defaultInjectLocation: 'header',
-      defaultInjectKeyName: 'Authorization', defaultBaseUrl: 'https://api.openai.com',
+      slug: 'groq', name: 'Groq', defaultInjectLocation: 'header',
+      defaultInjectKeyName: 'Authorization', defaultBaseUrl: 'https://api.groq.com/openai/v1',
     })
-    expect(getProviderBySlug('openai')!.isLlm).toBe(false)
+    expect(getProviderBySlug('groq')!.isLlm).toBe(false)
     seedDefaultProviders()
-    const upgraded = getProviderBySlug('openai')!
+    const upgraded = getProviderBySlug('groq')!
     expect(upgraded.isLlm).toBe(true)
     expect(upgraded.category).toBe('llm')
-    expect(upgraded.models).toEqual(expect.arrayContaining(['gpt-4o']))
+    expect(upgraded.isFree).toBe(true)
+    expect(upgraded.models).toEqual(expect.arrayContaining(['llama-3.3-70b-versatile']))
     expect(upgraded.defaultInjectValueTemplate).toBe('Bearer {key}')
   })
 

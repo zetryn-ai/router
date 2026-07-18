@@ -21,6 +21,7 @@ export const NewProviderSchema = z.object({
   isLlm: z.boolean().optional(),
   models: z.array(z.string()).optional(),
   stickyLimit: z.number().int().positive().optional(),
+  isFree: z.boolean().optional(),
 })
 export type NewProviderInput = z.infer<typeof NewProviderSchema>
 

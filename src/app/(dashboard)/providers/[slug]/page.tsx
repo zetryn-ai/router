@@ -6,6 +6,7 @@ import { CredentialForm } from './credential-form'
 import { CredentialList } from './credential-list'
 import { RotationStrategyControl } from './rotation-strategy-control'
 import { StickyControl } from './sticky-control'
+import { FreeBadge } from '../../provider-card'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,7 +43,10 @@ export default async function ProviderDetailPage({
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{provider.name}</h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{provider.name}</h1>
+            {provider.isFree && <FreeBadge />}
+          </div>
           <p className="mt-1 font-mono text-xs text-text-muted">
             inject: {provider.defaultInjectLocation}
             {provider.defaultInjectKeyName ? ` (${provider.defaultInjectKeyName})` : ''} · base URL:{' '}
