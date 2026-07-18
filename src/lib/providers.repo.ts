@@ -137,7 +137,7 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
   { slug: 'tatum', name: 'Tatum', category: 'rpc', defaultInjectLocation: 'header', defaultInjectKeyName: 'x-api-key', defaultBaseUrl: 'https://solana-mainnet.gateway.tatum.io', isFree: true },
 
   // --------------------------------------------------------------- Data / market
-  { slug: 'birdeye', name: 'Birdeye', category: 'data', defaultInjectLocation: 'header', defaultInjectKeyName: 'X-API-KEY', defaultBaseUrl: 'https://public-api.birdeye.so', isFree: false },
+  { slug: 'birdeye', name: 'Birdeye', category: 'data', defaultInjectLocation: 'header', defaultInjectKeyName: 'X-API-KEY', defaultBaseUrl: 'https://public-api.birdeye.so', isFree: true },
   { slug: 'dexscreener', name: 'DexScreener', category: 'data', defaultInjectLocation: 'header', defaultInjectKeyName: null, defaultBaseUrl: 'https://api.dexscreener.com', isFree: true },
   { slug: 'jupiter-price', name: 'Jupiter Price API', category: 'data', defaultInjectLocation: 'header', defaultInjectKeyName: null, defaultBaseUrl: 'https://lite-api.jup.ag', isFree: true },
   { slug: 'coingecko', name: 'CoinGecko', category: 'data', defaultInjectLocation: 'header', defaultInjectKeyName: 'x-cg-demo-api-key', defaultBaseUrl: 'https://api.coingecko.com/api/v3', isFree: true },
@@ -147,7 +147,7 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
   { slug: 'bitquery', name: 'Bitquery', category: 'data', defaultInjectLocation: 'header', defaultInjectKeyName: 'Authorization', defaultInjectValueTemplate: 'Bearer {key}', defaultBaseUrl: 'https://streaming.bitquery.io/graphql', isFree: true },
   { slug: 'solanafm', name: 'SolanaFM', category: 'data', defaultInjectLocation: 'header', defaultInjectKeyName: 'ApiKey', defaultBaseUrl: 'https://api.solana.fm', isFree: true },
   { slug: 'pyth', name: 'Pyth (Hermes)', category: 'data', defaultInjectLocation: 'header', defaultInjectKeyName: null, defaultBaseUrl: 'https://hermes.pyth.network', isFree: true },
-  { slug: 'codex', name: 'Codex (Defined.fi)', category: 'data', defaultInjectLocation: 'header', defaultInjectKeyName: 'Authorization', defaultBaseUrl: 'https://graph.codex.io/graphql', isFree: false },
+  { slug: 'codex', name: 'Codex (Defined.fi)', category: 'data', defaultInjectLocation: 'header', defaultInjectKeyName: 'Authorization', defaultBaseUrl: 'https://graph.codex.io/graphql', isFree: true },
   { slug: 'geckoterminal', name: 'GeckoTerminal', category: 'data', defaultInjectLocation: 'header', defaultInjectKeyName: null, defaultBaseUrl: 'https://api.geckoterminal.com/api/v2', isFree: true },
 
   // ---------------------------------------------------------------------- Swap
@@ -156,7 +156,7 @@ const DEFAULT_PROVIDERS: NewProviderInput[] = [
   { slug: 'orca', name: 'Orca (Whirlpools)', category: 'swap', defaultInjectLocation: 'header', defaultInjectKeyName: null, defaultBaseUrl: null, isFree: true },
   { slug: 'okx-dex', name: 'OKX DEX Aggregator', category: 'swap', defaultInjectLocation: 'header', defaultInjectKeyName: 'OK-ACCESS-KEY', defaultBaseUrl: 'https://web3.okx.com/api/v6/dex/aggregator', isFree: true },
   { slug: 'oneinch', name: '1inch (Fusion+)', category: 'swap', defaultInjectLocation: 'header', defaultInjectKeyName: 'Authorization', defaultInjectValueTemplate: 'Bearer {key}', defaultBaseUrl: 'https://api.1inch.dev/fusion', isFree: true },
-  { slug: 'dflow', name: 'DFlow', category: 'swap', defaultInjectLocation: 'header', defaultInjectKeyName: 'x-api-key', defaultBaseUrl: 'https://quote-api.dflow.net', isFree: false },
+  { slug: 'dflow', name: 'DFlow', category: 'swap', defaultInjectLocation: 'header', defaultInjectKeyName: 'x-api-key', defaultBaseUrl: 'https://quote-api.dflow.net', isFree: true },
 
   // ----------------------------------------------------------- LLM (free tier only)
   // Per requirement: only AI providers with a genuine free tier (free-forever or

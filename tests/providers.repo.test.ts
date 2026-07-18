@@ -85,7 +85,7 @@ describe('providers.repo', () => {
     const { seedDefaultProviders, getProviderBySlug } = await import('../src/lib/providers.repo')
     seedDefaultProviders()
     expect(getProviderBySlug('helius')).toMatchObject({ category: 'rpc', isLlm: false, isFree: true })
-    expect(getProviderBySlug('birdeye')).toMatchObject({ category: 'data', isLlm: false, isFree: false })
+    expect(getProviderBySlug('birdeye')).toMatchObject({ category: 'data', isLlm: false, isFree: true })
     expect(getProviderBySlug('jupiter')).toMatchObject({ category: 'swap', isLlm: false, isFree: true })
     const groq = getProviderBySlug('groq')!
     expect(groq.category).toBe('llm')
