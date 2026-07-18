@@ -66,6 +66,13 @@ export function getProviderBySlug(slug: string): Provider | undefined {
   return row ? toProvider(row) : undefined
 }
 
+export function getProviderById(id: number): Provider | undefined {
+  const row = getDb().prepare('SELECT * FROM providers WHERE id = ?').get(id) as
+    | ProviderRow
+    | undefined
+  return row ? toProvider(row) : undefined
+}
+
 export function createProvider(input: NewProviderInput): Provider {
   const result = getDb()
     .prepare(

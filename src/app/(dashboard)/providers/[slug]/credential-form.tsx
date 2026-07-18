@@ -7,9 +7,13 @@ import { TextInput, FieldLabel, Button } from '@/components/ui'
 export function CredentialForm({
   providerId,
   showPriority,
+  injectLocation,
+  hasDefaultBaseUrl,
 }: {
   providerId: number
   showPriority: boolean
+  injectLocation: 'query' | 'header' | 'path'
+  hasDefaultBaseUrl: boolean
 }) {
   const [label, setLabel] = useState('')
   const [secretValue, setSecretValue] = useState('')
@@ -19,8 +23,18 @@ export function CredentialForm({
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
+  // The key is only ever injected into the base URL for path-based providers,
+  // or when the provider has no shared default base URL at all (QuickNode,
+  // Jupiter-paid, etc). In both cases an empty override silently sends every
+  // request to the wrong (or missing) endpoint without the key attached.
+  const baseUrlRequired = injectLocation === 'path' || !hasDefaultBaseUrl
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (baseUrlRequired && !baseUrlOverride.trim()) {
+      setError('Base URL override is required for this provider — the key is embedded in the URL itself.')
+      return
+    }
     startTransition(async () => {
       const res = await fetch('/api/credentials', {
         method: 'POST',
@@ -72,12 +86,24 @@ export function CredentialForm({
           />
         </div>
         <div className={`space-y-1.5 ${showPriority ? '' : 'sm:col-span-2'}`}>
-          <FieldLabel>Base URL override</FieldLabel>
+          <FieldLabel>
+            Base URL override{baseUrlRequired ? ' (required)' : ''}
+          </FieldLabel>
           <TextInput
             value={baseUrlOverride}
             onChange={(e) => setBaseUrlOverride(e.target.value)}
-            placeholder="Optional — required for QuickNode / Jupiter-paid"
+            placeholder={
+              baseUrlRequired
+                ? 'Required — this provider embeds the key in the URL itself'
+                : 'Optional — leave blank to use the provider default'
+            }
+            required={baseUrlRequired}
           />
+          {baseUrlRequired && (
+            <p className="text-xs text-warning">
+              This provider injects the key as part of the URL path — paste the full endpoint URL including your key.
+            </p>
+          )}
         </div>
         {showPriority && (
           <div className="space-y-1.5">

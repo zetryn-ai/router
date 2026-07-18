@@ -78,7 +78,12 @@ export default async function ProviderDetailPage({
         </div>
       )}
       <CredentialList credentials={credentials} showPriority={showPriority} />
-      <CredentialForm providerId={provider.id} showPriority={showPriority} />
+      <CredentialForm
+        providerId={provider.id}
+        showPriority={showPriority}
+        injectLocation={provider.defaultInjectLocation}
+        hasDefaultBaseUrl={provider.defaultBaseUrl !== null}
+      />
     </div>
   )
 }

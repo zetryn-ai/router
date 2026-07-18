@@ -26,6 +26,19 @@ describe('providers.repo', () => {
     expect(providers[0]).toMatchObject({ slug: 'custom-rpc', name: 'Custom RPC' })
   })
 
+  it('getProviderById finds a provider by numeric id, undefined for unknown id', async () => {
+    const { createProvider, getProviderById } = await import('../src/lib/providers.repo')
+    const created = createProvider({
+      slug: 'custom-rpc-2',
+      name: 'Custom RPC 2',
+      defaultInjectLocation: 'header',
+      defaultInjectKeyName: 'X-API-KEY',
+      defaultBaseUrl: 'https://custom2.example.com',
+    })
+    expect(getProviderById(created.id)).toMatchObject({ slug: 'custom-rpc-2' })
+    expect(getProviderById(999999)).toBeUndefined()
+  })
+
   it('seeds exactly the default providers, idempotently', async () => {
     const { seedDefaultProviders, listProviders } = await import('../src/lib/providers.repo')
     seedDefaultProviders()
