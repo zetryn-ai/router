@@ -1,7 +1,7 @@
 import { listProviders } from '@/lib/providers.repo'
 import { listCredentialsByProvider } from '@/lib/credentials.repo'
 import { AddProviderForm } from './add-provider-form'
-import { ProviderCard } from './provider-card'
+import { ProvidersSearch } from './providers-search'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,18 +24,6 @@ export default function ProvidersOverviewPage() {
 
   const totalActive = cards.reduce((sum, c) => sum + c.active, 0)
   const totalCredentials = cards.reduce((sum, c) => sum + c.active + c.cooldown + c.disabled + c.error, 0)
-
-  const CATEGORY_LABELS: Record<string, string> = {
-    rpc: 'RPC Nodes',
-    data: 'Market Data',
-    swap: 'Swap',
-    llm: 'AI / LLM',
-    other: 'Other',
-  }
-  const ORDER = ['rpc', 'data', 'swap', 'llm', 'other']
-  const grouped = ORDER.map((cat) => ({ cat, items: cards.filter((c) => c.category === cat) })).filter(
-    (g) => g.items.length > 0
-  )
 
   return (
     <div className="space-y-8">
@@ -62,18 +50,7 @@ export default function ProvidersOverviewPage() {
         </div>
       </div>
 
-      {grouped.map((group) => (
-        <section key={group.cat} className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-text-muted">
-            {CATEGORY_LABELS[group.cat]}
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {group.items.map((card, index) => (
-              <ProviderCard key={card.slug} provider={card} index={index} />
-            ))}
-          </div>
-        </section>
-      ))}
+      <ProvidersSearch cards={cards} />
 
       <AddProviderForm />
     </div>

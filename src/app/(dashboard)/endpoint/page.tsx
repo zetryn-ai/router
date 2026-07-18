@@ -28,6 +28,30 @@ export default function EndpointPage() {
         <p className="text-xs text-text-muted">
           Combos: <span className="font-mono">{baseUrl}/proxy/combo/&lt;name&gt;/&lt;path&gt;</span>. Bound to loopback only.
         </p>
+
+        {requireEnabled ? (
+          <div className="rounded-lg border border-border-glow bg-gradient-card p-3">
+            <p className="text-xs font-medium text-text-primary">
+              🔒 Require API key is <span className="text-success">ON</span> — every request must include:
+            </p>
+            <code className="mt-1.5 block break-all rounded border border-border-default bg-bg-elevated px-2.5 py-1.5 font-mono text-xs">
+              Authorization: Bearer zr_...
+            </code>
+            <p className="mt-1.5 text-xs text-text-muted">
+              Requests without a valid key are rejected with <span className="font-mono">401</span>{' '}
+              before any provider credential is touched. Create a key below and pass it in your bot&apos;s HTTP
+              client headers.
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-border-subtle bg-bg-elevated/60 p-3">
+            <p className="text-xs text-text-muted">
+              🔓 Require API key is <span className="font-medium text-text-secondary">OFF</span> — the endpoint
+              accepts requests without an <span className="font-mono">Authorization</span> header. Turn it on below
+              to require every request to send <span className="font-mono">Authorization: Bearer zr_...</span>.
+            </p>
+          </div>
+        )}
       </div>
 
       <ApiKeysPanel initialKeys={keys} requireEnabled={requireEnabled} />
