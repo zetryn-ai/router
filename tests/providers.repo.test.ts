@@ -134,4 +134,28 @@ describe('providers.repo', () => {
     setStickyLimit(p.id, 5)
     expect(getProviderBySlug('sticky-p')!.stickyLimit).toBe(5)
   })
+
+  it('addModel appends a new model id, ignoring duplicates', async () => {
+    const { createProvider, getProviderBySlug, addModel } = await import('../src/lib/providers.repo')
+    const p = createProvider({
+      slug: 'llm-p', name: 'LLM P', defaultInjectLocation: 'header',
+      defaultInjectKeyName: 'Authorization', defaultBaseUrl: 'https://api.example.com',
+      isLlm: true, models: ['model-a'],
+    })
+    addModel(p.id, 'model-b')
+    expect(getProviderBySlug('llm-p')!.models).toEqual(['model-a', 'model-b'])
+    addModel(p.id, 'model-a') // duplicate — should not be added twice
+    expect(getProviderBySlug('llm-p')!.models).toEqual(['model-a', 'model-b'])
+  })
+
+  it('removeModel removes a model id, leaving others intact', async () => {
+    const { createProvider, getProviderBySlug, removeModel } = await import('../src/lib/providers.repo')
+    const p = createProvider({
+      slug: 'llm-p2', name: 'LLM P2', defaultInjectLocation: 'header',
+      defaultInjectKeyName: 'Authorization', defaultBaseUrl: 'https://api.example.com',
+      isLlm: true, models: ['model-a', 'model-b', 'model-c'],
+    })
+    removeModel(p.id, 'model-b')
+    expect(getProviderBySlug('llm-p2')!.models).toEqual(['model-a', 'model-c'])
+  })
 })

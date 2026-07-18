@@ -110,6 +110,19 @@ export function setStickyLimit(providerId: number, limit: number): void {
   getDb().prepare('UPDATE providers SET sticky_limit = ? WHERE id = ?').run(limit, providerId)
 }
 
+export function addModel(providerId: number, model: string): void {
+  const current = getProviderById(providerId)?.models ?? []
+  if (current.includes(model)) return
+  const next = [...current, model]
+  getDb().prepare('UPDATE providers SET models_json = ? WHERE id = ?').run(JSON.stringify(next), providerId)
+}
+
+export function removeModel(providerId: number, model: string): void {
+  const current = getProviderById(providerId)?.models ?? []
+  const next = current.filter((m) => m !== model)
+  getDb().prepare('UPDATE providers SET models_json = ? WHERE id = ?').run(JSON.stringify(next), providerId)
+}
+
 // ============================================================================
 // Default provider catalog. Data verified from official docs / community
 // (awesome-solana, provider pricing pages) — see docs/superpowers/plans notes.

@@ -59,3 +59,7 @@ export const UpdateComboSchema = z.object({
   strategy: ComboStrategySchema.optional(),
   models: z.array(z.string().min(1)).min(1).optional(),
 })
+
+export const ModelMutationSchema = z.object({
+  model: z.string().min(1),
+})

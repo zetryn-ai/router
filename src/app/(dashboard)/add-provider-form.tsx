@@ -12,6 +12,7 @@ export function AddProviderForm() {
   const [injectLocation, setInjectLocation] = useState<'query' | 'header' | 'path'>('header')
   const [injectKeyName, setInjectKeyName] = useState('')
   const [defaultBaseUrl, setDefaultBaseUrl] = useState('')
+  const [isLlm, setIsLlm] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -28,6 +29,8 @@ export function AddProviderForm() {
           defaultInjectLocation: injectLocation,
           defaultInjectKeyName: injectKeyName || null,
           defaultBaseUrl: defaultBaseUrl || null,
+          category: isLlm ? 'llm' : 'other',
+          isLlm,
         }),
       })
       if (!res.ok) {
@@ -40,6 +43,7 @@ export function AddProviderForm() {
       setName('')
       setInjectKeyName('')
       setDefaultBaseUrl('')
+      setIsLlm(false)
       setOpen(false)
       router.refresh()
     })
@@ -113,6 +117,16 @@ export function AddProviderForm() {
                   placeholder="Optional if set per-credential"
                 />
               </div>
+
+              <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={isLlm}
+                  onChange={(e) => setIsLlm(e.target.checked)}
+                  className="h-4 w-4 rounded border-border-default accent-[var(--accent-primary)]"
+                />
+                This is an LLM provider (enables model list &amp; Combos AI)
+              </label>
 
               {error && (
                 <p className="text-sm text-danger sm:col-span-2">{error}</p>
