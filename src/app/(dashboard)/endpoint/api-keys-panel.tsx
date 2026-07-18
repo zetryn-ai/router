@@ -96,7 +96,7 @@ export function ApiKeysPanel({
 
       <form onSubmit={createKey} className="flex gap-2">
         <TextInput value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Key label (e.g. scanner-bot)" required />
-        <Button type="submit" disabled={isPending}>Create Key</Button>
+        <Button type="submit" disabled={isPending} className="shrink-0 whitespace-nowrap">Create Key</Button>
       </form>
 
       <div className="space-y-2">
